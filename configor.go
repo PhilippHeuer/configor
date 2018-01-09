@@ -1,9 +1,14 @@
 package configor
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"regexp"
+	"io/ioutil"
+	"errors"
+	"strings"
+	yaml "gopkg.in/yaml.v2"
 )
 
 type Configor struct {
@@ -72,6 +77,28 @@ func (configor *Configor) Load(config interface{}, files ...string) error {
 		return configor.processTags(config)
 	}
 	return configor.processTags(config, prefix)
+}
+
+// Save will save the configurations to the provided filename
+func Save(config interface{}, filename string) error {
+	var fileContent []byte
+	var err error
+
+	switch {
+	  case strings.HasSuffix(filename, ".yaml") || strings.HasSuffix(filename, ".yml"):
+		  fileContent, err = yaml.Marshal(&config)
+	  case strings.HasSuffix(filename, ".json"):
+		  fileContent, err = json.Marshal(&config)
+	  default:
+		  return errors.New("Unknown file type")
+	}
+
+	if err != nil {
+		return nil
+	}
+
+	err = ioutil.WriteFile(filename, fileContent, 0600)
+	return err
 }
 
 // ENV return environment
